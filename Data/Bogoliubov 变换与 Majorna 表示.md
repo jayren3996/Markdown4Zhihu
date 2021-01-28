@@ -210,15 +210,15 @@ $$
 其中系数矩阵 $M=A^R-B^R$. 此时 BdG 型哈密顿量变为一个 $N\times N$ 维的实矩阵，哈密顿量的谱可以通过对系数矩阵做奇异值分解得到：
 
 $$
-M_{ij} = \sum_k U^T_{ik} \lambda_k V_{kj}.
+M_{ij} = \sum_k U_{ik} \lambda_k V^T_{kj}.
 $$
 
 其中 $U,V$ 为两个实正交矩阵。我们可以定义一组新的 Majorana 算符：
 
 $$
 \begin{eqnarray}
-\gamma^A_k &=& \sum_j U_{kj} \omega_j^A, \\
-\gamma^B_k &=& \sum_j V_{kj} \omega_j^B.
+\gamma^A_k &=& \sum_j \omega_j^A U_{jk} , \\
+\gamma^B_k &=& \sum_j \omega_j^B V_{jk} .
 \end{eqnarray}
 $$
 
@@ -281,7 +281,7 @@ $$
 现在我们考虑实反对称矩阵标准型。其定义为：
 
 $$
-\underline M = \underline O^T \cdot \underline\Sigma \cdot \underline O. 
+\underline M = \underline O \cdot \underline\Sigma \cdot \underline O^T.
 $$
 
 其中
@@ -301,15 +301,17 @@ $$
 现在，我们又能通过正交变换定义新的 Majorana 算符：
 
 $$
-\underline\Gamma = \underline{O} \cdot \underline{\Omega},
+\begin{eqnarray}
+\gamma^A_k &=& \sum_{j=1}^N \left[\omega_j^A O_{j,2k-1}+\omega_j^B O_{j,2k-1}\right], \\
+\gamma^B_k &=& \sum_{j=1}^N \left[\omega_j^A O_{j,2k}+\omega_j^B O_{j,2k}\right],
+\end{eqnarray}
 $$
 
 得到：
 
 $$
 \begin{eqnarray}
-H &=& \frac{i}{4} \underline{\Gamma}^T \cdot \underline{\Sigma} \cdot \underline{\Gamma} \\
-&=& \frac{i}{4} \sum_{k} \lambda_k (\gamma_k^A\gamma_k^B-\gamma_k^B\gamma_k^A) \\
+H &=& \frac{i}{4} \sum_{k} \lambda_k (\gamma_k^A\gamma_k^B-\gamma_k^B\gamma_k^A) \\
 &=& \frac{i}{2} \sum_{k} \lambda_k \gamma_k^A\gamma_k^B.
 \end{eqnarray}
 $$
@@ -328,11 +330,8 @@ function majorana_real(
     B::AbstractMatrix{<:AbstractFloat}
 )
     M = A - B
-    u, s, v = svd(M)
-    energy = s
-    vector_A = Array(u')
-    vector_B = Array(v)
-    energy, vector_A, vector_B
+    U, λ, V = svd(M)
+    λ, U, V
 end
 
 function majorana_complex(
@@ -365,7 +364,9 @@ function majorana_complex(
     end
     sortinds = sortperm(energy, rev=true)
     sortinds2 = vcat(([2i-1, 2i] for i in sortinds)...)
-    energy[sortinds], O[:, sortinds2]
+    λ = energy[sortinds]
+    O = O[:, sortinds2]
+    λ, O
 end
 ```
 

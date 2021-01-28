@@ -280,20 +280,20 @@ H_2
 其中系数矩阵  <img src="https://www.zhihu.com/equation?tex=M=A^R-B^R" alt="M=A^R-B^R" class="ee_img tr_noresize" eeimg="1"> . 此时 BdG 型哈密顿量变为一个  <img src="https://www.zhihu.com/equation?tex=N\times N" alt="N\times N" class="ee_img tr_noresize" eeimg="1">  维的实矩阵，哈密顿量的谱可以通过对系数矩阵做奇异值分解得到：
 
 
-<img src="https://www.zhihu.com/equation?tex=M_{ij} = \sum_k U^T_{ik} \lambda_k V_{kj}.
-" alt="M_{ij} = \sum_k U^T_{ik} \lambda_k V_{kj}.
+<img src="https://www.zhihu.com/equation?tex=M_{ij} = \sum_k U_{ik} \lambda_k V^T_{kj}.
+" alt="M_{ij} = \sum_k U_{ik} \lambda_k V^T_{kj}.
 " class="ee_img tr_noresize" eeimg="1">
 
 其中  <img src="https://www.zhihu.com/equation?tex=U,V" alt="U,V" class="ee_img tr_noresize" eeimg="1">  为两个实正交矩阵。我们可以定义一组新的 Majorana 算符：
 
 
 <img src="https://www.zhihu.com/equation?tex=\begin{eqnarray}
-\gamma^A_k &=& \sum_j U_{kj} \omega_j^A, \\
-\gamma^B_k &=& \sum_j V_{kj} \omega_j^B.
+\gamma^A_k &=& \sum_j \omega_j^A U_{jk} , \\
+\gamma^B_k &=& \sum_j \omega_j^B V_{jk} .
 \end{eqnarray}
 " alt="\begin{eqnarray}
-\gamma^A_k &=& \sum_j U_{kj} \omega_j^A, \\
-\gamma^B_k &=& \sum_j V_{kj} \omega_j^B.
+\gamma^A_k &=& \sum_j \omega_j^A U_{jk} , \\
+\gamma^B_k &=& \sum_j \omega_j^B V_{jk} .
 \end{eqnarray}
 " class="ee_img tr_noresize" eeimg="1">
 
@@ -372,8 +372,8 @@ H_2
 现在我们考虑实反对称矩阵标准型。其定义为：
 
 
-<img src="https://www.zhihu.com/equation?tex=\underline M = \underline O^T \cdot \underline\Sigma \cdot \underline O. 
-" alt="\underline M = \underline O^T \cdot \underline\Sigma \cdot \underline O. 
+<img src="https://www.zhihu.com/equation?tex=\underline M = \underline O \cdot \underline\Sigma \cdot \underline O^T.
+" alt="\underline M = \underline O \cdot \underline\Sigma \cdot \underline O^T.
 " class="ee_img tr_noresize" eeimg="1">
 
 其中
@@ -400,21 +400,25 @@ H_2
 现在，我们又能通过正交变换定义新的 Majorana 算符：
 
 
-<img src="https://www.zhihu.com/equation?tex=\underline\Gamma = \underline{O} \cdot \underline{\Omega},
-" alt="\underline\Gamma = \underline{O} \cdot \underline{\Omega},
+<img src="https://www.zhihu.com/equation?tex=\begin{eqnarray}
+\gamma^A_k &=& \sum_{j=1}^N \left[\omega_j^A O_{j,2k-1}+\omega_j^B O_{j,2k-1}\right], \\
+\gamma^B_k &=& \sum_{j=1}^N \left[\omega_j^A O_{j,2k}+\omega_j^B O_{j,2k}\right],
+\end{eqnarray}
+" alt="\begin{eqnarray}
+\gamma^A_k &=& \sum_{j=1}^N \left[\omega_j^A O_{j,2k-1}+\omega_j^B O_{j,2k-1}\right], \\
+\gamma^B_k &=& \sum_{j=1}^N \left[\omega_j^A O_{j,2k}+\omega_j^B O_{j,2k}\right],
+\end{eqnarray}
 " class="ee_img tr_noresize" eeimg="1">
 
 得到：
 
 
 <img src="https://www.zhihu.com/equation?tex=\begin{eqnarray}
-H &=& \frac{i}{4} \underline{\Gamma}^T \cdot \underline{\Sigma} \cdot \underline{\Gamma} \\
-&=& \frac{i}{4} \sum_{k} \lambda_k (\gamma_k^A\gamma_k^B-\gamma_k^B\gamma_k^A) \\
+H &=& \frac{i}{4} \sum_{k} \lambda_k (\gamma_k^A\gamma_k^B-\gamma_k^B\gamma_k^A) \\
 &=& \frac{i}{2} \sum_{k} \lambda_k \gamma_k^A\gamma_k^B.
 \end{eqnarray}
 " alt="\begin{eqnarray}
-H &=& \frac{i}{4} \underline{\Gamma}^T \cdot \underline{\Sigma} \cdot \underline{\Gamma} \\
-&=& \frac{i}{4} \sum_{k} \lambda_k (\gamma_k^A\gamma_k^B-\gamma_k^B\gamma_k^A) \\
+H &=& \frac{i}{4} \sum_{k} \lambda_k (\gamma_k^A\gamma_k^B-\gamma_k^B\gamma_k^A) \\
 &=& \frac{i}{2} \sum_{k} \lambda_k \gamma_k^A\gamma_k^B.
 \end{eqnarray}
 " class="ee_img tr_noresize" eeimg="1">
@@ -433,11 +437,8 @@ function majorana_real(
     B::AbstractMatrix{<:AbstractFloat}
 )
     M = A - B
-    u, s, v = svd(M)
-    energy = s
-    vector_A = Array(u')
-    vector_B = Array(v)
-    energy, vector_A, vector_B
+    U, λ, V = svd(M)
+    λ, U, V
 end
 
 function majorana_complex(
@@ -470,7 +471,9 @@ function majorana_complex(
     end
     sortinds = sortperm(energy, rev=true)
     sortinds2 = vcat(([2i-1, 2i] for i in sortinds)...)
-    energy[sortinds], O[:, sortinds2]
+    λ = energy[sortinds]
+    O = O[:, sortinds2]
+    λ, O
 end
 ```
 
